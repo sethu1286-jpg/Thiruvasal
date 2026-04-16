@@ -1,40 +1,534 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState } from "react";
 
-// ─────────────────────────────────────────────
-//  MOCK DATABASE  (swap with Firebase SDK)
-// ─────────────────────────────────────────────
-const uid = () => Math.random().toString(36).substr(2, 9);
-const DB = {
-  users: {},
-  spiritualPosts: [
-    { id:"sp1", userId:"demo1", userName:"ராஜேஷ் குமார்", avatar:"🧔", text:"திருவாரூர் மகோற்சவம் நாளை தொடங்குகிறது! அனைவரும் வாருங்கள் 🛕", likes:["demo2"], comments:[{userId:"demo2",userName:"பாரதி",text:"நன்றி! 🙏"}], createdAt:Date.now()-3600000, isLive:true },
-    { id:"sp2", userId:"demo2", userName:"பாரதி தேவி",   avatar:"👩", text:"இன்று காலை சிவபூஜை நடந்தது. மனம் அமைதி பெற்றது 🕯️",          likes:[],          comments:[],                                                      createdAt:Date.now()-7200000, isLive:false },
-    { id:"sp3", userId:"demo3", userName:"கணேஷ்",       avatar:"🧑", text:"கார்த்திகை தீபம் – நம் கோயிலில் சிறப்பு நிகழ்வு! ✨",           likes:["demo1","demo2"], comments:[],                                               createdAt:Date.now()-86400000, isLive:false },
-  ],
-  businessListings: [
-    { id:"bl1", userId:"demo1", vendorName:"கலைமகள் சேலை", avatar:"🥻", product:"காஞ்சிபுரம் பட்டு சேலை", price:3200, description:"Pure Kanchipuram silk, 6 yards", phone:"9876543210", category:"saree",  likes:12, createdAt:Date.now()-172800000, isNew:true  },
-    { id:"bl2", userId:"demo2", vendorName:"நாட்டு கடை",   avatar:"🫙", product:"நாட்டு நெய் – 500ml",        price:280,  description:"Pure cow ghee",                phone:"9123456789", category:"food",   likes:8,  createdAt:Date.now()-259200000, isNew:false },
-    { id:"bl3", userId:"demo3", vendorName:"செம்பு கலை",   avatar:"🏺", product:"செம்பு குடம் – Handmade",    price:550,  description:"Traditional copper vessel",   phone:"9234567890", category:"craft",  likes:5,  createdAt:Date.now()-345600000, isNew:false },
-  ],
-  charityRequests: [
-    { id:"cr1", userId:"demo1", title:"குழந்தைகள் கல்வி நிதி",    description:"20 students need school fees",      target:50000,  collected:32400, donors:["demo2"], urgent:true,  createdAt:Date.now()-86400000 },
-    { id:"cr2", userId:"demo2", title:"உணவு விநியோகம்",           description:"Weekly free meals for 100 elderly", target:20000,  collected:18500, donors:["demo1"], urgent:false, createdAt:Date.now()-172800000 },
-    { id:"cr3", userId:"demo3", title:"வெள்ள பாதிப்பு நிவாரணம்", description:"Flood relief for 50 families",      target:100000, collected:45000, donors:[],       urgent:true,  createdAt:Date.now()-43200000 },
-  ],
-  medicalServices: [
-    { id:"ms1", name:"ஸ்ரீ வினாயக மருத்துவமனை", type:"Hospital",   address:"Anna Salai, Chennai",   phone:"044-12345678", emergency:true,  specialties:["General","Cardiology"],  rating:4.5, distance:"1.2 km" },
-    { id:"ms2", name:"குமார் கிளினிக்",           type:"Clinic",     address:"T Nagar, Chennai",      phone:"044-87654321", emergency:false, specialties:["General","Pediatrics"],  rating:4.2, distance:"2.8 km" },
-    { id:"ms3", name:"அரசு பொது மருத்துவமனை",    type:"Government", address:"Park Town, Chennai",    phone:"044-23456789", emergency:true,  specialties:["All Departments"],       rating:4.0, distance:"3.5 km" },
-  ],
-  notifications: [
-    { id:"n1", type:"spiritual", msg:"திருவாரூர் மகோற்சவம் நாளை தொடங்குகிறது!",    read:false, createdAt:Date.now()-1800000 },
-    { id:"n2", type:"charity",   msg:"குழந்தைகள் கல்வி நிதிக்கு புதிய நன்கொடை!",  read:false, createdAt:Date.now()-3600000 },
-    { id:"n3", type:"business",  msg:"உங்கள் தயாரிப்புக்கு புதிய ஆர்டர்!",         read:true,  createdAt:Date.now()-7200000 },
-  ],
-};
+const gold   = "#C9922A";
+const goldLt = "#F5DFA0";
+const goldDk = "#8B6010";
+const cream  = "#FFFDF7";
+const white  = "#FFFFFF";
+const gray1  = "#F7F4EE";
+const gray2  = "#E8E2D6";
+const gray3  = "#9A8F7A";
+const text   = "#2D2416";
 
-// ─────────────────────────────────────────────
-//  AUTH ENGINE
+const DONORS = [
+  { id:1, name:"அருண்குமார்",     mobile:"9876543210", purpose:"கும்பாபிஷேகம்", amount:5000,  date:"2024-04-14", status:"paid",    reminded:false },
+  { id:2, name:"கமலா தேவி",       mobile:"9123456780", purpose:"தீபாராதனை",     amount:2500,  date:"2024-03-08", status:"pending", reminded:true  },
+  { id:3, name:"வேலுமுருகன்",     mobile:"9988776655", purpose:"அன்னதானம்",     amount:10000, date:"2024-06-01", status:"paid",    reminded:false },
+  { id:4, name:"சரஸ்வதி அம்மாள்", mobile:"9001122334", purpose:"தீபாவளி விழா", amount:1500,  date:"2024-10-23", status:"pending", reminded:true  },
+  { id:5, name:"முருகேசன்",        mobile:"9445566778", purpose:"கோபுர நவீகரணம்",amount:25000, date:"2024-12-15", status:"paid",    reminded:false },
+];
+
+const BUSINESSES = [
+  { id:1, name:"ஸ்ரீ பூஜா ஸ்டோர்",  type:"பூஜை பொருட்கள்", price:"₹50 முதல்",  contact:"9876500001", plan:"paid"  },
+  { id:2, name:"அம்பிகா டெக்ஸ்டைல்", type:"கோவில் ஆடைகள்",  price:"₹500 முதல்", contact:"9876500002", plan:"free"  },
+  { id:3, name:"வேல் கேட்டரிங்",     type:"அன்னதான சேவை",   price:"₹80/person", contact:"9876500003", plan:"paid"  },
+];
+
+const fmt = (n) => "₹" + Number(n).toLocaleString("en-IN");
+
+const Badge = ({ paid }) => (
+  <span style={{
+    fontSize:11, fontWeight:700, padding:"3px 10px", borderRadius:20,
+    background: paid ? "#E8F5E9" : "#FFF3E0",
+    color:       paid ? "#2E7D32" : "#E65100",
+  }}>
+    {paid ? "செலுத்தப்பட்டது" : "நிலுவையில்"}
+  </span>
+);
+
+const Card = ({ children, style={} }) => (
+  <div style={{
+    background:white, borderRadius:16, padding:"18px",
+    boxShadow:"0 2px 12px rgba(201,146,42,0.10)",
+    border:`1px solid ${gray2}`, marginBottom:14, ...style
+  }}>{children}</div>
+);
+
+const GoldBtn = ({ label, onClick, small, outline }) => (
+  <button onClick={onClick} style={{
+    background: outline ? white : gold,
+    color:       outline ? gold  : white,
+    border:      outline ? `2px solid ${gold}` : "none",
+    borderRadius:12, padding: small ? "8px 18px" : "14px 28px",
+    fontSize: small ? 14 : 16, fontWeight:700,
+    cursor:"pointer", width: small ? "auto" : "100%",
+    boxShadow: outline ? "none" : "0 3px 12px rgba(201,146,42,0.28)",
+  }}>{label}</button>
+);
+
+const Input = ({ placeholder, type="text", value, onChange }) => (
+  <input
+    type={type} placeholder={placeholder} value={value} onChange={onChange}
+    style={{
+      width:"100%", boxSizing:"border-box",
+      padding:"13px 16px", borderRadius:12,
+      border:`1.5px solid ${gray2}`, fontSize:15,
+      background:gray1, color:text, outline:"none",
+      fontFamily:"inherit", marginBottom:12,
+    }}
+  />
+);
+
+const SectionTitle = ({ children }) => (
+  <h3 style={{ color:goldDk, fontSize:15, fontWeight:800, letterSpacing:0.6,
+    textTransform:"uppercase", margin:"18px 0 10px",
+    borderLeft:`3px solid ${gold}`, paddingLeft:10 }}>{children}</h3>
+);
+
+function LoginScreen({ onLogin }) {
+  const [mobile, setMobile] = useState("");
+  const [pass,   setPass]   = useState("");
+  const [isReg,  setIsReg]  = useState(false);
+  const [name,   setName]   = useState("");
+  const [err,    setErr]    = useState("");
+
+  const handle = () => {
+    if (!mobile || mobile.length < 10) { setErr("சரியான மொபைல் எண் கொடுங்கள்"); return; }
+    if (!pass)                          { setErr("கடவுச்சொல் கொடுங்கள்"); return; }
+    onLogin({ name: name || "அன்பர்", mobile });
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", background:cream, display:"flex",
+      flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24 }}>
+      <div style={{ textAlign:"center", marginBottom:36 }}>
+        <div style={{ fontSize:52 }}>🛕</div>
+        <h1 style={{ color:gold, fontSize:30, fontWeight:900, margin:"8px 0 2px",
+          letterSpacing:1.5, fontFamily:"serif" }}>திருவாசல்</h1>
+        <p style={{ color:gray3, fontSize:13, margin:0 }}>கோவில் நிர்வாக செயலி</p>
+      </div>
+      <div style={{ width:"100%", maxWidth:380 }}>
+        <Card>
+          <h2 style={{ color:goldDk, fontSize:18, fontWeight:800, marginTop:0,
+            marginBottom:18, textAlign:"center" }}>
+            {isReg ? "புதிய கணக்கு" : "உள்நுழைவு"}
+          </h2>
+          {isReg && <Input placeholder="உங்கள் பெயர்" value={name} onChange={e=>setName(e.target.value)}/>}
+          <Input placeholder="மொபைல் எண்" type="tel"      value={mobile} onChange={e=>setMobile(e.target.value)}/>
+          <Input placeholder="கடவுச்சொல்"  type="password" value={pass}   onChange={e=>setPass(e.target.value)}/>
+          {err && <p style={{ color:"#C62828", fontSize:13, margin:"0 0 10px" }}>{err}</p>}
+          <GoldBtn label={isReg ? "பதிவு செய்க" : "உள்நுழைக"} onClick={handle}/>
+          <p style={{ textAlign:"center", marginTop:14, fontSize:14, color:gray3 }}>
+            {isReg ? "ஏற்கனவே கணக்கு உள்ளதா? " : "புதிய பயனரா? "}
+            <span onClick={()=>{ setIsReg(!isReg); setErr(""); }}
+              style={{ color:gold, fontWeight:700, cursor:"pointer" }}>
+              {isReg ? "உள்நுழைவு" : "பதிவு செய்க"}
+            </span>
+          </p>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function HomeScreen({ user, setScreen }) {
+  return (
+    <div style={{ padding:24 }}>
+      <div style={{ marginBottom:24 }}>
+        <p style={{ color:gray3, fontSize:13, margin:0 }}>வணக்கம்,</p>
+        <h2 style={{ color:goldDk, fontSize:22, fontWeight:900, margin:"2px 0 0",
+          fontFamily:"serif" }}>{user.name}</h2>
+      </div>
+      <div onClick={() => setScreen("charity")} style={{
+        background:`linear-gradient(135deg, ${gold} 0%, #A8740F 100%)`,
+        borderRadius:20, padding:28, marginBottom:16, cursor:"pointer",
+        boxShadow:"0 6px 24px rgba(201,146,42,0.35)",
+      }}>
+        <div style={{ fontSize:40, marginBottom:8 }}>🪔</div>
+        <h2 style={{ color:white, fontSize:22, fontWeight:900, margin:"0 0 4px",
+          fontFamily:"serif" }}>தருமநிலயம்</h2>
+        <p style={{ color:"rgba(255,255,255,0.85)", fontSize:14, margin:0 }}>
+          நன்கொடை பட்டியல் & நினைவூட்டல்
+        </p>
+        <div style={{ marginTop:14, display:"flex", gap:10 }}>
+          {[
+            { n:DONORS.filter(d=>d.status==="paid").length,    l:"செலுத்தினர்" },
+            { n:DONORS.filter(d=>d.status==="pending").length, l:"நிலுவை" },
+          ].map(({ n, l }) => (
+            <div key={l} style={{ background:"rgba(255,255,255,0.2)", borderRadius:12,
+              padding:"8px 16px", textAlign:"center" }}>
+              <div style={{ color:white, fontSize:20, fontWeight:900 }}>{n}</div>
+              <div style={{ color:"rgba(255,255,255,0.8)", fontSize:12 }}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div onClick={() => setScreen("business")} style={{
+        background:white, border:`2px solid ${gold}`,
+        borderRadius:20, padding:28, cursor:"pointer",
+        boxShadow:"0 3px 16px rgba(201,146,42,0.12)",
+      }}>
+        <div style={{ fontSize:40, marginBottom:8 }}>🏪</div>
+        <h2 style={{ color:gold, fontSize:22, fontWeight:900, margin:"0 0 4px",
+          fontFamily:"serif" }}>வர்த்தகம்</h2>
+        <p style={{ color:gray3, fontSize:14, margin:0 }}>வணிக பட்டியல் & விளம்பரம்</p>
+        <div style={{ marginTop:14, display:"inline-block", background:goldLt,
+          borderRadius:10, padding:"6px 14px" }}>
+          <span style={{ color:goldDk, fontSize:13, fontWeight:700 }}>
+            {BUSINESSES.length} பட்டியல்கள்
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CharityScreen({ setScreen }) {
+  const [donors,   setDonors]   = useState(DONORS);
+  const [filter,   setFilter]   = useState("all");
+  const [showAdd,  setShowAdd]  = useState(false);
+  const [newDonor, setNewDonor] = useState({ name:"", mobile:"", purpose:"", amount:"", date:"" });
+  const [toast,    setToast]    = useState("");
+  const [selected, setSelected] = useState(null);
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
+
+  const filtered = donors.filter(d => filter === "all" ? true : d.status === filter);
+
+  const confirm = (id, yes) => {
+    setDonors(prev => prev.map(d =>
+      d.id === id ? { ...d, status: yes ? "paid" : "pending", reminded:false } : d
+    ));
+    showToast(yes ? "✅ நன்கொடை உறுதிப்படுத்தப்பட்டது!" : "⏭ தவிர்க்கப்பட்டது");
+    setSelected(null);
+  };
+
+  const addDonor = () => {
+    if (!newDonor.name || !newDonor.amount) { showToast("பெயர் & தொகை கொடுங்கள்"); return; }
+    setDonors(prev => [...prev, {
+      ...newDonor, id: Date.now(), status:"pending", reminded:false,
+      amount: Number(newDonor.amount),
+    }]);
+    setNewDonor({ name:"", mobile:"", purpose:"", amount:"", date:"" });
+    setShowAdd(false);
+    showToast("✅ நன்கொடையாளர் சேர்க்கப்பட்டார்!");
+  };
+
+  return (
+    <div style={{ padding:20 }}>
+      {toast && (
+        <div style={{ position:"fixed", top:70, left:"50%", transform:"translateX(-50%)",
+          background:goldDk, color:white, padding:"10px 22px", borderRadius:20,
+          fontSize:14, fontWeight:700, zIndex:999, whiteSpace:"nowrap",
+          boxShadow:"0 4px 16px rgba(0,0,0,0.18)" }}>
+          {toast}
+        </div>
+      )}
+      {selected && (
+        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.45)",
+          display:"flex", alignItems:"center", justifyContent:"center", zIndex:998, padding:24 }}>
+          <Card style={{ width:"100%", maxWidth:360, marginBottom:0 }}>
+            <div style={{ textAlign:"center", marginBottom:4 }}>
+              <div style={{ fontSize:36 }}>🔔</div>
+              <h3 style={{ color:goldDk, fontSize:18, fontWeight:900, margin:"8px 0 4px" }}>நினைவூட்டல்</h3>
+              <p style={{ color:gray3, fontSize:14, margin:0 }}>{selected.name} — {selected.purpose}</p>
+              <p style={{ color:gold, fontSize:22, fontWeight:900, margin:"8px 0" }}>{fmt(selected.amount)}</p>
+              <p style={{ color:gray3, fontSize:13 }}>நன்கொடை உறுதிப்படுத்துகிறீர்களா?</p>
+            </div>
+            <div style={{ display:"flex", gap:12 }}>
+              <button onClick={() => confirm(selected.id, true)} style={{
+                flex:1, background:gold, color:white, border:"none",
+                borderRadius:12, padding:14, fontSize:15, fontWeight:800, cursor:"pointer"
+              }}>✅ ஆம்</button>
+              <button onClick={() => confirm(selected.id, false)} style={{
+                flex:1, background:gray1, color:gray3, border:`1.5px solid ${gray2}`,
+                borderRadius:12, padding:14, fontSize:15, fontWeight:700, cursor:"pointer"
+              }}>❌ இல்லை</button>
+            </div>
+            <p onClick={() => setSelected(null)} style={{
+              textAlign:"center", color:gray3, fontSize:13, marginTop:12, cursor:"pointer" }}>மூடு</p>
+          </Card>
+        </div>
+      )}
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
+        <button onClick={() => setScreen("home")} style={{
+          background:gray1, border:"none", borderRadius:10, padding:"8px 12px",
+          cursor:"pointer", fontSize:18 }}>←</button>
+        <div>
+          <h2 style={{ color:gold, fontSize:20, fontWeight:900, margin:0, fontFamily:"serif" }}>🪔 தருமநிலயம்</h2>
+          <p style={{ color:gray3, fontSize:12, margin:0 }}>நன்கொடை நிர்வாகம்</p>
+        </div>
+        <button onClick={() => setShowAdd(!showAdd)} style={{
+          marginLeft:"auto", background:gold, color:white,
+          border:"none", borderRadius:12, padding:"9px 16px",
+          fontWeight:800, fontSize:15, cursor:"pointer" }}>+ சேர்</button>
+      </div>
+      {showAdd && (
+        <Card>
+          <SectionTitle>புதிய நன்கொடையாளர்</SectionTitle>
+          <Input placeholder="பெயர்"       value={newDonor.name}    onChange={e=>setNewDonor({...newDonor,name:e.target.value})}/>
+          <Input placeholder="மொபைல் எண்"  value={newDonor.mobile}  onChange={e=>setNewDonor({...newDonor,mobile:e.target.value})} type="tel"/>
+          <Input placeholder="நோக்கம்"     value={newDonor.purpose} onChange={e=>setNewDonor({...newDonor,purpose:e.target.value})}/>
+          <Input placeholder="தொகை (₹)"   value={newDonor.amount}  onChange={e=>setNewDonor({...newDonor,amount:e.target.value})} type="number"/>
+          <Input placeholder="தேதி"        value={newDonor.date}    onChange={e=>setNewDonor({...newDonor,date:e.target.value})} type="date"/>
+          <div style={{ display:"flex", gap:10 }}>
+            <GoldBtn label="சேமி" onClick={addDonor} small/>
+            <GoldBtn label="ரத்து" onClick={()=>setShowAdd(false)} small outline/>
+          </div>
+        </Card>
+      )}
+      <div style={{ display:"flex", gap:10, marginBottom:16 }}>
+        {[
+          { label:"மொத்தம்",     n:donors.length,                                     col:gold      },
+          { label:"செலுத்தினர்", n:donors.filter(d=>d.status==="paid").length,         col:"#2E7D32" },
+          { label:"நிலுவை",     n:donors.filter(d=>d.status==="pending").length,       col:"#E65100" },
+        ].map(({ label, n, col }) => (
+          <div key={label} style={{ flex:1, background:white,
+            borderRadius:14, padding:"12px 10px", textAlign:"center",
+            border:`1.5px solid ${gray2}`, boxShadow:"0 2px 8px rgba(201,146,42,0.08)" }}>
+            <div style={{ color:col, fontSize:20, fontWeight:900 }}>{n}</div>
+            <div style={{ color:gray3, fontSize:11, marginTop:2 }}>{label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display:"flex", background:gray1, borderRadius:12, padding:4, marginBottom:16, gap:4 }}>
+        {[["all","அனைத்தும்"],["paid","செலுத்தினர்"],["pending","நிலுவை"]].map(([k,l])=>(
+          <button key={k} onClick={()=>setFilter(k)} style={{
+            flex:1, border:"none", borderRadius:9,
+            background: filter===k ? gold : "transparent",
+            color:       filter===k ? white : gray3,
+            padding:"9px 4px", fontSize:12, fontWeight:700, cursor:"pointer",
+          }}>{l}</button>
+        ))}
+      </div>
+      {filtered.map(d => (
+        <Card key={d.id}>
+          <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+            <div style={{ width:44, height:44, borderRadius:22, background:goldLt,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:20, flexShrink:0 }}>👤</div>
+            <div style={{ flex:1 }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <span style={{ color:text, fontSize:16, fontWeight:800 }}>{d.name}</span>
+                <Badge paid={d.status==="paid"}/>
+              </div>
+              <p style={{ color:gray3, fontSize:13, margin:"3px 0" }}>{d.purpose}</p>
+              <div style={{ display:"flex", gap:16, marginTop:4 }}>
+                <span style={{ color:gold, fontWeight:800, fontSize:15 }}>{fmt(d.amount)}</span>
+                <span style={{ color:gray3, fontSize:13 }}>{d.date}</span>
+              </div>
+              {d.reminded && d.status === "pending" && (
+                <div style={{ marginTop:8, background:"#FFF8E1", borderRadius:8,
+                  padding:"6px 10px", display:"flex", alignItems:"center", gap:6 }}>
+                  <span style={{ fontSize:14 }}>🔔</span>
+                  <span style={{ color:"#E65100", fontSize:12, fontWeight:700 }}>நினைவூட்டல் அனுப்பப்பட்டது</span>
+                </div>
+              )}
+            </div>
+          </div>
+          {d.status === "pending" && (
+            <div style={{ display:"flex", gap:10, marginTop:12 }}>
+              <button onClick={()=>setSelected(d)} style={{
+                flex:1, background:goldLt, color:goldDk, border:"none",
+                borderRadius:10, padding:"9px", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+                🔔 உறுதிப்படுத்து
+              </button>
+              <button onClick={()=>confirm(d.id,true)} style={{
+                flex:1, background:gold, color:white, border:"none",
+                borderRadius:10, padding:"9px", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+                ✅ செலுத்தப்பட்டது
+              </button>
+            </div>
+          )}
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function BusinessScreen({ setScreen }) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [items,   setItems]   = useState(BUSINESSES);
+  const [form,    setForm]    = useState({ name:"", type:"", price:"", contact:"", plan:"free" });
+  const [toast,   setToast]   = useState("");
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
+
+  const add = () => {
+    if (!form.name) { showToast("வணிக பெயர் கொடுங்கள்"); return; }
+    setItems(prev => [...prev, { ...form, id: Date.now() }]);
+    setForm({ name:"", type:"", price:"", contact:"", plan:"free" });
+    setShowAdd(false);
+    showToast("✅ பட்டியல் சேர்க்கப்பட்டது!");
+  };
+
+  return (
+    <div style={{ padding:20 }}>
+      {toast && (
+        <div style={{ position:"fixed", top:70, left:"50%", transform:"translateX(-50%)",
+          background:goldDk, color:white, padding:"10px 22px", borderRadius:20,
+          fontSize:14, fontWeight:700, zIndex:999, whiteSpace:"nowrap" }}>
+          {toast}
+        </div>
+      )}
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:18 }}>
+        <button onClick={() => setScreen("home")} style={{
+          background:gray1, border:"none", borderRadius:10, padding:"8px 12px",
+          cursor:"pointer", fontSize:18 }}>←</button>
+        <div>
+          <h2 style={{ color:gold, fontSize:20, fontWeight:900, margin:0, fontFamily:"serif" }}>🏪 வர்த்தகம்</h2>
+          <p style={{ color:gray3, fontSize:12, margin:0 }}>வணிக பட்டியல்</p>
+        </div>
+        <button onClick={() => setShowAdd(!showAdd)} style={{
+          marginLeft:"auto", background:gold, color:white,
+          border:"none", borderRadius:12, padding:"9px 16px",
+          fontWeight:800, fontSize:15, cursor:"pointer" }}>+ சேர்</button>
+      </div>
+      <div style={{ display:"flex", gap:10, marginBottom:16 }}>
+        {[
+          { plan:"free", label:"இலவச",           desc:"அடிப்படை பட்டியல்",    emoji:"📋", col:gray3 },
+          { plan:"paid", label:"பணம் செலுத்திய", desc:"முன்னிலை பட்டியல்",    emoji:"⭐", col:gold  },
+        ].map(({ plan, label, desc, emoji, col }) => (
+          <div key={plan} style={{ flex:1, background:white,
+            border: plan==="paid" ? `2px solid ${gold}` : `1.5px solid ${gray2}`,
+            borderRadius:14, padding:14, textAlign:"center" }}>
+            <div style={{ fontSize:24 }}>{emoji}</div>
+            <div style={{ color:col, fontWeight:800, fontSize:14 }}>{label}</div>
+            <div style={{ color:gray3, fontSize:11, marginTop:2 }}>{desc}</div>
+          </div>
+        ))}
+      </div>
+      {showAdd && (
+        <Card>
+          <SectionTitle>புதிய வணிகம் சேர்</SectionTitle>
+          <Input placeholder="வணிக பெயர்"         value={form.name}    onChange={e=>setForm({...form,name:e.target.value})}/>
+          <Input placeholder="பொருள் / சேவை வகை" value={form.type}    onChange={e=>setForm({...form,type:e.target.value})}/>
+          <Input placeholder="விலை"                value={form.price}   onChange={e=>setForm({...form,price:e.target.value})}/>
+          <Input placeholder="தொடர்பு எண்"         value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})} type="tel"/>
+          <p style={{ color:gray3, fontSize:13, margin:"0 0 8px" }}>திட்டம்:</p>
+          <div style={{ display:"flex", gap:8, marginBottom:12 }}>
+            {["free","paid"].map(p => (
+              <button key={p} onClick={()=>setForm({...form,plan:p})} style={{
+                flex:1, border: form.plan===p ? `2px solid ${gold}` : `1.5px solid ${gray2}`,
+                background: form.plan===p ? goldLt : white,
+                color: form.plan===p ? goldDk : gray3,
+                borderRadius:10, padding:"9px", fontSize:13,
+                fontWeight:700, cursor:"pointer"
+              }}>
+                {p==="free" ? "இலவச" : "⭐ பணம் செலுத்திய"}
+              </button>
+            ))}
+          </div>
+          <div style={{ display:"flex", gap:10 }}>
+            <GoldBtn label="சேமி" onClick={add} small/>
+            <GoldBtn label="ரத்து" onClick={()=>setShowAdd(false)} small outline/>
+          </div>
+        </Card>
+      )}
+      {items.map(b => (
+        <Card key={b.id} style={{ border: b.plan==="paid" ? `2px solid ${gold}` : `1px solid ${gray2}` }}>
+          {b.plan==="paid" && (
+            <div style={{ background:goldLt, borderRadius:8, padding:"4px 10px",
+              display:"inline-block", marginBottom:8 }}>
+              <span style={{ color:goldDk, fontSize:11, fontWeight:800 }}>⭐ முன்னிலை</span>
+            </div>
+          )}
+          <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+            <div style={{ width:48, height:48, borderRadius:14,
+              background: b.plan==="paid" ? goldLt : gray1,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:22, flexShrink:0 }}>🏪</div>
+            <div style={{ flex:1 }}>
+              <p style={{ color:text, fontSize:16, fontWeight:800, margin:0 }}>{b.name}</p>
+              <p style={{ color:gray3, fontSize:13, margin:"3px 0" }}>{b.type}</p>
+              <div style={{ display:"flex", gap:16 }}>
+                <span style={{ color:gold, fontWeight:800, fontSize:14 }}>{b.price}</span>
+                <span style={{ color:gray3, fontSize:13 }}>📞 {b.contact}</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function ProfileScreen({ user, setScreen }) {
+  return (
+    <div style={{ padding:20 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={() => setScreen("home")} style={{
+          background:gray1, border:"none", borderRadius:10, padding:"8px 12px",
+          cursor:"pointer", fontSize:18 }}>←</button>
+        <h2 style={{ color:gold, fontSize:20, fontWeight:900, margin:0, fontFamily:"serif" }}>👤 சுயவிவரம்</h2>
+      </div>
+      <Card style={{ textAlign:"center" }}>
+        <div style={{ width:72, height:72, borderRadius:36, background:goldLt,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:36, margin:"0 auto 12px" }}>👤</div>
+        <h3 style={{ color:goldDk, fontSize:20, fontWeight:900, margin:"0 0 4px" }}>{user.name}</h3>
+        <p style={{ color:gray3, fontSize:14, margin:0 }}>📞 {user.mobile}</p>
+      </Card>
+      <SectionTitle>என் நன்கொடைகள்</SectionTitle>
+      {DONORS.slice(0,3).map(d => (
+        <Card key={d.id}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <p style={{ color:text, fontWeight:700, fontSize:15, margin:0 }}>{d.purpose}</p>
+              <p style={{ color:gray3, fontSize:13, margin:"3px 0" }}>{d.date}</p>
+            </div>
+            <div style={{ textAlign:"right" }}>
+              <p style={{ color:gold, fontWeight:900, fontSize:16, margin:"0 0 4px" }}>{fmt(d.amount)}</p>
+              <Badge paid={d.status==="paid"}/>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+export default function ThiruvasalApp() {
+  const [user,   setUser]   = useState(null);
+  const [screen, setScreen] = useState("home");
+
+  if (!user) return <LoginScreen onLogin={u => setUser(u)}/>;
+
+  const screens = { home:HomeScreen, charity:CharityScreen, business:BusinessScreen, profile:ProfileScreen };
+  const Screen  = screens[screen] || HomeScreen;
+
+  return (
+    <div style={{ background:cream, minHeight:"100vh", maxWidth:430,
+      margin:"0 auto", fontFamily:"'Noto Sans Tamil', 'Segoe UI', sans-serif",
+      position:"relative", paddingBottom:80 }}>
+      <div style={{ background:white, borderBottom:`1px solid ${gray2}`,
+        padding:"14px 20px", display:"flex", alignItems:"center",
+        justifyContent:"space-between", position:"sticky", top:0, zIndex:100,
+        boxShadow:"0 2px 8px rgba(201,146,42,0.07)" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <span style={{ fontSize:22 }}>🛕</span>
+          <span style={{ color:gold, fontWeight:900, fontSize:18,
+            fontFamily:"serif", letterSpacing:0.8 }}>திருவாசல்</span>
+        </div>
+        <span style={{ color:gray3, fontSize:13, fontWeight:600 }}>{user.name}</span>
+      </div>
+      <Screen user={user} setScreen={setScreen}/>
+      <div style={{ position:"fixed", bottom:0, left:"50%",
+        transform:"translateX(-50%)", width:"100%", maxWidth:430,
+        background:white, borderTop:`1px solid ${gray2}`,
+        display:"flex", boxShadow:"0 -3px 12px rgba(0,0,0,0.07)" }}>
+        {[
+          { key:"home",     label:"முகப்பு",   emoji:"🏠" },
+          { key:"charity",  label:"தருமம்",    emoji:"🪔" },
+          { key:"business", label:"வர்த்தகம்", emoji:"🏪" },
+          { key:"profile",  label:"சுயவிவரம்", emoji:"👤" },
+        ].map(({ key, label, emoji }) => (
+          <button key={key} onClick={() => setScreen(key)} style={{
+            flex:1, border:"none", background:"transparent",
+            padding:"12px 4px 10px", cursor:"pointer",
+            borderTop: screen===key ? `2.5px solid ${gold}` : "2.5px solid transparent",
+          }}>
+            <div style={{ fontSize:20 }}>{emoji}</div>
+            <div style={{
+              color: screen===key ? gold : gray3,
+              fontSize:10, fontWeight: screen===key ? 800 : 500, marginTop:2,
+            }}>{label}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}//  AUTH ENGINE
 // ─────────────────────────────────────────────
 const delay = (ms=700) => new Promise(r=>setTimeout(r,ms));
 const Auth = {
