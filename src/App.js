@@ -1,8 +1,5 @@
-import React from "react";
-import Thiruvasal from "./Thiruvasal-V3";
+import ThiruvasalApp from './Thiruvasal';
 
-function App() {
-  return <Thiruvasal />;
+export default function App() {
+  return <ThiruvasalApp />;
 }
-
-export default App;
