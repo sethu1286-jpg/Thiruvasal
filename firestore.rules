@@ -1,0 +1,60 @@
+// firestore.rules
+// Deploy with: firebase deploy --only firestore:rules
+//
+// Rules:
+//  - Users can read/write their own profile
+//  - Admins (role == "admin") can read/write all donors
+//  - Donors can read donors, update only their own status
+//  - Anyone authenticated can read businesses
+//  - Only owners or admins can write businesses
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ──────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ── Users collection ──────────────────────────
+    match /users/{uid} {
+      allow read:  if isSignedIn() && (isOwner(uid) || isAdmin());
+      allow create: if isSignedIn() && isOwner(uid);
+      allow update: if isSignedIn() && (isOwner(uid) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ── Donors collection ─────────────────────────
+    match /donors/{donorId} {
+      allow read:   if isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Businesses collection ─────────────────────
+    match /businesses/{businessId} {
+      allow read:   if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() &&
+        (isAdmin() || resource.data.ownerId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // ── Reminders collection ──────────────────────
+    match /reminders/{reminderId} {
+      allow read:  if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
