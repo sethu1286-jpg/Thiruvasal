@@ -38,10 +38,10 @@ import {
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyABFYdnOQAf1-WkVxanFsXxM2fj6-XOnrU",
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "thiruvasal.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "1013411348504",
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "thiruvasal",
   storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "thiruvasal.appspot.com",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "YOUR_SENDER_ID",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:1013411348504",
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "1013411348504",
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:1013411348504:web:a34bea6fc6b",
 };
 
 // ─── INITIALIZE ───────────────────────────────────────
