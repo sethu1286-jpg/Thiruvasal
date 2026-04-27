@@ -1,8 +1,8 @@
 // src/components/UI.jsx
 // Shared reusable components for Thiruvasal
 
-import React, { useState } from "react";
-import { colors, shadows, radii } from "../styles/theme";
+//import React, { useState } from "react";
+//import { colors, shadows, radii } from "../styles/theme";
 
 // ══════════════════════════════════════════════════════
 // SUN ICON — Animated orange sun with rays
