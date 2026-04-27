@@ -34,7 +34,7 @@ function InnerApp() {
   };
   const meta = screenMeta[tab] || screenMeta.home;
 
-  //const pendingCount = 0; // will be populated via context if needed
+  const pendingCount = 0; // will be populated via context if needed
 
   return (
     <div className="app-shell">
