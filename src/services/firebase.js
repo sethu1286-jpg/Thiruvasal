@@ -30,7 +30,7 @@ import {
 // Go to: Vercel Dashboard -> Project -> Settings -> Environment Variables
 // Add all 6 REACT_APP_FIREBASE_* variables then redeploy.
 const firebaseConfig = {
-  apiKey:            process.env.REACT_APP_FIREBASE_API_KEY             || "AIzaSyPLACEHOLDER",
+  apiKey:            process.env.REACT_APP_FIREBASE_API_KEY             || "AIzaSyABFYdnOQAf1-WkVxanFsXxM2fj6-XOnrU",
   authDomain:        process.env.REACT_APP_FIREBASE_AUTH_DOMAIN         || "thiruvasal.firebaseapp.com",
   projectId:         process.env.REACT_APP_FIREBASE_PROJECT_ID          || "thiruvasal",
   storageBucket:     process.env.REACT_APP_FIREBASE_STORAGE_BUCKET      || "thiruvasal.firebasestorage.app",
