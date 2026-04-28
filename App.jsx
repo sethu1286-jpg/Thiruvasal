@@ -1,5 +1,4 @@
-// src/App.jsx
-/* eslint-disable no-unused-vars */
+/* eslint-disable */
 import React, { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -16,15 +15,15 @@ function InnerApp() {
   const { user, loading, isAdmin } = useAuth();
   const [tab, setTab] = useState("home");
 
-  if (loading) return <FullLoader text="திருவாசல் ஏற்றுகிறது..." />;
+  if (loading) return <FullLoader text="Loading..." />;
   if (!user)   return <LoginScreen />;
 
   const screenMeta = {
-    home:     { title: "திருவாசல்",      sub: "ஐயா அகிலம் • AyyaAkilam" },
-    charity:  { title: "🏛️ தருமநிலயம்", sub: "நன்கொடை மேலாண்மை" },
-    business: { title: "🛒 வர்த்தகம்",   sub: "வணிக பட்டியல்" },
-    profile:  { title: "👤 சுயவிவரம்",   sub: "என் கணக்கு" },
-    admin:    { title: "⚙️ நிர்வாகம்",   sub: "Admin Dashboard" },
+    home:     { title: "Thiruvasal",  sub: "AyyaAkilam" },
+    charity:  { title: "Charity",     sub: "Donation Management" },
+    business: { title: "Business",    sub: "Listings" },
+    profile:  { title: "Profile",     sub: "My Account" },
+    admin:    { title: "Admin",       sub: "Dashboard" },
   };
   const meta = screenMeta[tab] || screenMeta.home;
 
@@ -38,9 +37,12 @@ function InnerApp() {
             <div style={{
               background: "rgba(255,152,0,0.15)",
               border: "1px solid rgba(255,152,0,0.35)",
-              borderRadius: 20, padding: "4px 10px",
-              color: "#FF9800", fontSize: 11, fontWeight: 700,
-            }}>🔔</div>
+              borderRadius: 20,
+              padding: "4px 10px",
+              color: "#FF9800",
+              fontSize: 11,
+              fontWeight: 700,
+            }}>Bell</div>
             <button className="btn-outline" style={{ padding: "5px 9px", fontSize: 10 }}>EN</button>
           </div>
         }
@@ -55,7 +57,7 @@ function InnerApp() {
         {tab === "admin"    && !isAdmin && (
           <div style={{ padding: "40px 20px", textAlign: "center", color: "#5A7AB5" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
-            <div>நிர்வாகி மட்டும் அணுக முடியும்</div>
+            <div>Admin access only</div>
           </div>
         )}
       </div>
@@ -79,7 +81,7 @@ export default function App() {
             border: "1px solid rgba(255,140,0,0.3)",
             borderRadius: "12px",
             fontSize: "14px",
-            fontFamily: "'Noto Sans Tamil', 'Poppins', sans-serif",
+            fontFamily: "Poppins, sans-serif",
             maxWidth: "360px",
           },
           success: { iconTheme: { primary: "#FF8C00", secondary: "#0F1B3D" } },
