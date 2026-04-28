@@ -55,7 +55,7 @@ class ErrorBoundary extends React.Component {
             maxWidth: 360,
           }}>
             <div style={{ marginBottom: 6, fontWeight: 700 }}>Add these in Vercel:</div>
-            <div>REACT_APP_FIREBASE_API_KEY = AIzaSy...</div>
+            <div>REACT_APP_FIREBASE_API_KEY = AIzaSyABFYdnOQAf1-WkVxanFsXxM2fj6-XOnrU</div>
             <div>REACT_APP_FIREBASE_AUTH_DOMAIN = thiruvasal.firebaseapp.com</div>
             <div>REACT_APP_FIREBASE_PROJECT_ID = thiruvasal</div>
             <div>REACT_APP_FIREBASE_STORAGE_BUCKET = thiruvasal.firebasestorage.app</div>
