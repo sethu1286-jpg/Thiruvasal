@@ -1,32 +1,40 @@
-// src/context/AuthContext.js
-// Global authentication context — wraps entire app
-
+/* eslint-disable */
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { subscribeToAuth, getUserProfile, logoutUser } from "../services/firebase";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);       // Firebase auth user
-  const [profile, setProfile] = useState(null); // Firestore user profile
+  const [user, setUser]       = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Subscribe to Firebase auth state
-    const unsubscribe = subscribeToAuth(async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        // Fetch full profile from Firestore
-        const { profile: p } = await getUserProfile(firebaseUser.uid);
-        setProfile(p);
-      } else {
-        setUser(null);
-        setProfile(null);
-      }
+    let unsubscribe;
+    try {
+      unsubscribe = subscribeToAuth(async (firebaseUser) => {
+        try {
+          if (firebaseUser) {
+            setUser(firebaseUser);
+            const { profile: p } = await getUserProfile(firebaseUser.uid);
+            setProfile(p);
+          } else {
+            setUser(null);
+            setProfile(null);
+          }
+        } catch (err) {
+          console.error("Auth error:", err);
+          setUser(null);
+          setProfile(null);
+        } finally {
+          setLoading(false);
+        }
+      });
+    } catch (err) {
+      console.error("Firebase error:", err);
       setLoading(false);
-    });
-
-    return unsubscribe; // cleanup on unmount
+    }
+    return () => { if (unsubscribe) unsubscribe(); };
   }, []);
 
   const logout = async () => {
@@ -35,29 +43,21 @@ export function AuthProvider({ children }) {
     setProfile(null);
   };
 
-  const isAdmin = profile?.role === "admin";
-  const isDonor = profile?.role === "donor";
-
-  const value = {
-    user,
-    profile,
-    loading,
-    isAdmin,
-    isDonor,
-    logout,
-    setProfile, // allow profile update after registration
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user, profile, loading,
+      isAdmin: profile?.role === "admin",
+      isDonor: profile?.role === "donor",
+      logout,
+      setProfile,
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-/** Custom hook to consume auth context anywhere in the app */
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) throw new Error("useAuth must be inside AuthProvider");
   return ctx;
 }
