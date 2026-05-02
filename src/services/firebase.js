@@ -36,7 +36,7 @@ import {
 // TODO: Replace these values with your actual Firebase project config
 // Go to: Firebase Console → Project Settings → General → Your Apps → SDK setup
 const firebaseConfig = {
-  apiKey:            process.env.REACT_APP_FIREBASE_API_KEY             || "REACT_APP_FIREBASE_API_KEY=AIzaSyABFYdnOQAf1-WkVxanFsXxM2fj6-XOnrU",
+  apiKey:            process.env.REACT_APP_FIREBASE_API_KEY             || "AIzaSyABFYdnOQAf1-WkVxanFsXxM2fj6-XOnrU",
   authDomain:        process.env.REACT_APP_FIREBASE_AUTH_DOMAIN         || "thiruvasal.firebaseapp.com",
   projectId:         process.env.REACT_APP_FIREBASE_PROJECT_ID          || "thiruvasal",
   storageBucket:     process.env.REACT_APP_FIREBASE_STORAGE_BUCKET      || "thiruvasal.firebasestorage.app",
