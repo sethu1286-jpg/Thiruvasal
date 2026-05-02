@@ -1,4 +1,3 @@
-console.log("UI LOADED")
 /* eslint-disable */
 import React from "react";
 
@@ -10,7 +9,6 @@ const MUTED = "#5A7AB5";
 export function SunIcon({ size = 100 }) {
   const c = size / 2;
   const r = size * 0.26;
-
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <circle cx={c} cy={c} r={r} fill="orange" />
@@ -22,11 +20,8 @@ export function SunIcon({ size = 100 }) {
 export function TopBar({ title, subtitle, onBack, rightElement }) {
   return (
     <div style={{
-      position: "sticky",
-      top: 0,
-      padding: 12,
-      display: "flex",
-      justifyContent: "space-between",
+      position: "sticky", top: 0, padding: 12,
+      display: "flex", justifyContent: "space-between",
       background: "#0F1B3D",
       borderBottom: "1px solid rgba(255,140,0,0.2)"
     }}>
@@ -39,13 +34,11 @@ export function TopBar({ title, subtitle, onBack, rightElement }) {
   );
 }
 
-// 📊 Stat Box (🔥 REQUIRED FIX)
+// 📊 Stat Box
 export function StatBox({ icon, label, value, color = "#FFA833" }) {
   return (
     <div style={{
-      flex: 1,
-      textAlign: "center",
-      padding: 12,
+      flex: 1, textAlign: "center", padding: 12,
       background: "rgba(22,35,71,0.6)",
       border: "1px solid rgba(255,140,0,0.2)",
       borderRadius: 12
@@ -56,40 +49,7 @@ export function StatBox({ icon, label, value, color = "#FFA833" }) {
     </div>
   );
 }
-// 📋 Modal Sheet
-export function ModalSheet({ title, onClose, children }) {
-  return (
-    <div style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.6)",
-      display: "flex",
-      alignItems: "flex-end",
-      justifyContent: "center",
-      zIndex: 999
-    }}>
-      <div className="glass-card" style={{
-        width: "100%",
-        maxWidth: 430,
-        borderRadius: "20px 20px 0 0",
-        padding: 24,
-        maxHeight: "80vh",
-        overflowY: "auto"
-      }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-          <div className="shimmer-text" style={{ fontWeight: 900 }}>{title}</div>
-          <button onClick={onClose} style={{
-            background: "none", border: "none",
-            color: "#FFA833", fontSize: 20, cursor: "pointer"
-          }}>✕</button>
-        </div>
 
-        {children}
-      </div>
-    </div>
-  );
-}
 // 🧾 Card
 export function Card({ children, onClick, style }) {
   return (
@@ -98,23 +58,23 @@ export function Card({ children, onClick, style }) {
     </div>
   );
 }
-// emptystate
-export const EmptyState = ({ message }) => (
-  <div className="empty-state">
-    <p>{message || "No items found."}</p>
-  </div>
- );
+
+// 🈳 Empty State
+export function EmptyState({ message }) {
+  return (
+    <div className="empty-state">
+      <p>{message || "No items found."}</p>
+    </div>
+  );
+}
 
 // 🗨️ Confirm Dialog
 export function ConfirmDialog({ message, onConfirm, onCancel }) {
   return (
     <div style={{
-      position: "fixed",
-      inset: 0,
+      position: "fixed", inset: 0,
       background: "rgba(0,0,0,0.6)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
+      display: "flex", alignItems: "center", justifyContent: "center",
       zIndex: 999
     }}>
       <div className="glass-card" style={{ padding: 24, maxWidth: 300, textAlign: "center" }}>
@@ -123,30 +83,51 @@ export function ConfirmDialog({ message, onConfirm, onCancel }) {
           <button onClick={onCancel} style={{
             padding: "8px 20px", borderRadius: 8,
             background: "rgba(255,255,255,0.1)", border: "none", color: "#fff"
-          }}>
-            ரத்து
-          </button>
+          }}>ரத்து</button>
           <button onClick={onConfirm} style={{
             padding: "8px 20px", borderRadius: 8,
             background: "#FF8C00", border: "none", color: "#fff", fontWeight: "bold"
-          }}>
-            உறுதி
-          </button>
+          }}>உறுதி</button>
         </div>
       </div>
     </div>
   );
 }
-// 🔄 Loader
+
+// 📋 Modal Sheet
+export function ModalSheet({ title, onClose, children }) {
+  return (
+    <div style={{
+      position: "fixed", inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex", alignItems: "flex-end", justifyContent: "center",
+      zIndex: 999
+    }}>
+      <div className="glass-card" style={{
+        width: "100%", maxWidth: 430,
+        borderRadius: "20px 20px 0 0",
+        padding: 24, maxHeight: "80vh", overflowY: "auto"
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+          <div className="shimmer-text" style={{ fontWeight: 900 }}>{title}</div>
+          <button onClick={onClose} style={{
+            background: "none", border: "none",
+            color: "#FFA833", fontSize: 20, cursor: "pointer"
+          }}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// 🔄 Full Loader
 export function FullLoader({ text = "Loading..." }) {
   return (
     <div style={{
-      position: "fixed",
-      inset: 0,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
+      position: "fixed", inset: 0,
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
       background: "#0F1B3D"
     }}>
       <SunIcon size={60} />
@@ -156,24 +137,18 @@ export function FullLoader({ text = "Loading..." }) {
   );
 }
 
-// 🌌 Particle Background (🔥 REQUIRED for HomeScreen)
+// 🌌 Particle Background
 export function ParticleBg() {
   const particles = Array.from({ length: 15 });
-
   return (
     <div style={{
-      position: "absolute",
-      inset: 0,
-      overflow: "hidden",
-      pointerEvents: "none"
+      position: "absolute", inset: 0,
+      overflow: "hidden", pointerEvents: "none"
     }}>
       {particles.map((_, i) => (
         <div key={i} style={{
-          position: "absolute",
-          width: 3,
-          height: 3,
-          background: "#FFA833",
-          borderRadius: "50%",
+          position: "absolute", width: 3, height: 3,
+          background: "#FFA833", borderRadius: "50%",
           top: Math.random() * 100 + "%",
           left: Math.random() * 100 + "%",
           opacity: 0.6
@@ -192,32 +167,20 @@ export function BottomNav({ activeTab, setTab, isAdmin }) {
     { id: "profile", label: "Profile", icon: "👤" },
     ...(isAdmin ? [{ id: "admin", label: "Admin", icon: "⚙️" }] : [])
   ];
-
   return (
     <nav style={{
-      position: "fixed",
-      bottom: 0,
-      width: "100%",
-      maxWidth: 430,
-      display: "flex",
-      background: "#0F1B3D",
+      position: "fixed", bottom: 0,
+      width: "100%", maxWidth: 430,
+      display: "flex", background: "#0F1B3D",
       borderTop: "1px solid rgba(255,140,0,0.2)"
     }}>
       {items.map(item => {
         const active = activeTab === item.id;
-
         return (
-          <button
-            key={item.id}
-            onClick={() => setTab(item.id)}
-            style={{
-              flex: 1,
-              background: "none",
-              border: "none",
-              color: active ? SUN2 : MUTED,
-              padding: 8
-            }}
-          >
+          <button key={item.id} onClick={() => setTab(item.id)} style={{
+            flex: 1, background: "none", border: "none",
+            color: active ? SUN2 : MUTED, padding: 8
+          }}>
             <div>{item.icon}</div>
             <div style={{ fontSize: 10 }}>{item.label}</div>
           </button>
@@ -226,4 +189,3 @@ export function BottomNav({ activeTab, setTab, isAdmin }) {
     </nav>
   );
 }
-
