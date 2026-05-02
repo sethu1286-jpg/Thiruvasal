@@ -65,7 +65,13 @@ export function Card({ children, onClick, style }) {
     </div>
   );
 }
-
+// emptystate
+export const EmptyState = ({ message }) => (
+  <div className="empty-state">
+    <p>{message || "No items found."}</p>
+  </div>
+ );
+}
 // 🔄 Loader
 export function FullLoader({ text = "Loading..." }) {
   return (
