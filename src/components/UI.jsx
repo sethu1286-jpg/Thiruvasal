@@ -71,7 +71,6 @@ export const EmptyState = ({ message }) => (
     <p>{message || "No items found."}</p>
   </div>
  );
-}
 // 🔄 Loader
 export function FullLoader({ text = "Loading..." }) {
   return (
