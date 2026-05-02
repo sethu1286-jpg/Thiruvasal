@@ -3,29 +3,56 @@ import React, { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { FullLoader, TopBar, BottomNav } from "./components/UI";
-import LoginScreen    from "./screens/LoginScreen";
-import HomeScreen     from "./screens/HomeScreen";
-import CharityScreen  from "./screens/CharityScreen";
+
+import LoginScreen from "./screens/LoginScreen";
+import HomeScreen from "./screens/HomeScreen";
+import CharityScreen from "./screens/CharityScreen";
 import BusinessScreen from "./screens/BusinessScreen";
-import ProfileScreen  from "./screens/ProfileScreen";
-import AdminScreen    from "./screens/AdminScreen";
+import ProfileScreen from "./screens/ProfileScreen";
+import AdminScreen from "./screens/AdminScreen";
+
 import "./styles/global.css";
 
 function InnerApp() {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin = false } = useAuth(); // ✅ safe default
   const [tab, setTab] = useState("home");
 
   if (loading) return <FullLoader text="திருவாசல் ஏற்றுகிறது..." />;
-  if (!user)   return <LoginScreen />;
+  if (!user) return <LoginScreen />;
 
   const screenMeta = {
-    home:     { title: "திருவாசல்",       sub: "ஐயா அகிலம் • AyyaAkilam" },
-    charity:  { title: "🏛️ தருமநிலயம்",  sub: "நன்கொடை மேலாண்மை" },
-    business: { title: "🛒 வர்த்தகம்",    sub: "வணிக பட்டியல்" },
-    profile:  { title: "👤 சுயவிவரம்",    sub: "என் கணக்கு" },
-    admin:    { title: "⚙️ நிர்வாகம்",    sub: "Admin Dashboard" },
+    home: { title: "திருவாசல்", sub: "ஐயா அகிலம் • AyyaAkilam" },
+    charity: { title: "🏛️ தருமநிலயம்", sub: "நன்கொடை மேலாண்மை" },
+    business: { title: "🛒 வர்த்தகம்", sub: "வணிக பட்டியல்" },
+    profile: { title: "👤 சுயவிவரம்", sub: "என் கணக்கு" },
+    admin: { title: "⚙️ நிர்வாகம்", sub: "Admin Dashboard" },
   };
+
   const meta = screenMeta[tab] || screenMeta.home;
+
+  const renderScreen = () => {
+    switch (tab) {
+      case "home":
+        return <HomeScreen setTab={setTab} />;
+      case "charity":
+        return <CharityScreen />;
+      case "business":
+        return <BusinessScreen />;
+      case "profile":
+        return <ProfileScreen />;
+      case "admin":
+        return isAdmin ? (
+          <AdminScreen />
+        ) : (
+          <div style={{ padding: "40px 20px", textAlign: "center", color: "#5A7AB5" }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+            <div>நிர்வாகி மட்டும் அணுக முடியும்</div>
+          </div>
+        );
+      default:
+        return <HomeScreen />;
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -34,29 +61,29 @@ function InnerApp() {
         subtitle={meta.sub}
         rightElement={
           <div style={{ display: "flex", gap: 7, alignItems: "center" }}>
-            <div style={{
-              background: "rgba(255,152,0,0.15)",
-              border: "1px solid rgba(255,152,0,0.35)",
-              borderRadius: 20, padding: "4px 10px",
-              color: "#FF9800", fontSize: 11, fontWeight: 700,
-            }}>🔔</div>
-            <button className="btn-outline" style={{ padding: "5px 9px", fontSize: 10 }}>EN</button>
+            <div
+              style={{
+                background: "rgba(255,152,0,0.15)",
+                border: "1px solid rgba(255,152,0,0.35)",
+                borderRadius: 20,
+                padding: "4px 10px",
+                color: "#FF9800",
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
+              🔔
+            </div>
+            <button className="btn-outline" style={{ padding: "5px 9px", fontSize: 10 }}>
+              EN
+            </button>
           </div>
         }
       />
 
-      <div style={{ paddingBottom: 62, minHeight: "calc(100vh - 52px)" }}>
-        {tab === "home"     && <HomeScreen setTab={setTab} />}
-        {tab === "charity"  && <CharityScreen />}
-        {tab === "business" && <BusinessScreen />}
-        {tab === "profile"  && <ProfileScreen />}
-        {tab === "admin"    && isAdmin  && <AdminScreen />}
-        {tab === "admin"    && !isAdmin && (
-          <div style={{ padding: "40px 20px", textAlign: "center", color: "#5A7AB5" }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
-            <div>நிர்வாகி மட்டும் அணுக முடியும்</div>
-          </div>
-        )}
+      {/* ✅ Scrollable content */}
+      <div className="scroll-y" style={{ paddingBottom: 70, minHeight: "calc(100vh - 52px)" }}>
+        {renderScreen()}
       </div>
 
       <BottomNav activeTab={tab} setTab={setTab} isAdmin={isAdmin} />
@@ -68,6 +95,7 @@ export default function App() {
   return (
     <AuthProvider>
       <InnerApp />
+
       <Toaster
         position="top-center"
         toastOptions={{
@@ -81,8 +109,12 @@ export default function App() {
             fontFamily: "'Noto Sans Tamil', 'Poppins', sans-serif",
             maxWidth: "360px",
           },
-          success: { iconTheme: { primary: "#FF8C00", secondary: "#0F1B3D" } },
-          error:   { iconTheme: { primary: "#EF4444", secondary: "#0F1B3D" } },
+          success: {
+            iconTheme: { primary: "#FF8C00", secondary: "#0F1B3D" },
+          },
+          error: {
+            iconTheme: { primary: "#EF4444", secondary: "#0F1B3D" },
+          },
         }}
       />
     </AuthProvider>
