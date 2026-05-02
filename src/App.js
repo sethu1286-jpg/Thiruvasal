@@ -626,3 +626,124 @@ export default function App() {
     </Ctx.Provider>
   );
 }
+function App() {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("home");
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        setUser(u);
+        try {
+          const snap = await getDoc(doc(db, "users", u.uid));
+          if (snap.exists()) setProfile(snap.data());
+          else {
+            setProfile({
+              uid: u.uid,
+              name: u.displayName || "User",
+              email: u.email || "",
+              phone: "",
+              role: "donor",
+            });
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, []);
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setTab("home");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  if (loading) {
+    return (
+      <>
+        <style>{CSS}</style>
+        <div style={{ background: "#0F1B3D", minHeight: "100vh" }} />
+      </>
+    );
+  }
+
+  if (!user) {
+    return (
+      <>
+        <style>{CSS}</style>
+        <Login />
+      </>
+    );
+  }
+
+  return (
+    <Ctx.Provider
+      value={{
+        user,
+        profile,
+        isAdmin: profile?.role === "admin",
+        logout,
+      }}
+    >
+      <style>{CSS}</style>
+      <div className="app">
+        {tab === "home" && <Home setTab={setTab} />}
+        {tab === "charity" && <Charity />}
+        {tab === "business" && <Business />}
+        {tab === "profile" && <Profile />}
+        {tab === "admin" && profile?.role === "admin" && <Admin />}
+
+        <div
+          style={{
+            position: "fixed",
+            bottom: 0,
+            width: "100%",
+            maxWidth: 430,
+            background: "rgba(12,20,48,0.96)",
+            borderTop: "1px solid rgba(255,140,0,0.14)",
+            display: "flex",
+            justifyContent: "space-around",
+            padding: "10px 0",
+            zIndex: 999,
+          }}
+        >
+          {[
+            ["home", "🏠"],
+            ["charity", "🙏"],
+            ["business", "🛒"],
+            ["profile", "👤"],
+            ...(profile?.role === "admin" ? [["admin", "⚙️"]] : []),
+          ].map(([key, icon]) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: tab === key ? "#FFA833" : "rgba(255,255,255,0.5)",
+                fontSize: 22,
+                cursor: "pointer",
+              }}
+            >
+              {icon}
+            </button>
+          ))}
+        </div>
+      </div>
+    </Ctx.Provider>
+  );
+}
+
+export default App;
