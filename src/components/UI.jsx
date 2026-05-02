@@ -5,27 +5,21 @@ const SUN = "#FF8C00";
 const SUN2 = "#FFA833";
 const MUTED = "#5A7AB5";
 const TEXT = "#F0F6FF";
-const MODAL_BG = "0 20px 60px rgba(0,0,0,0.7)";
 
+// ─────────────────────────────────────────
+// 🌞 Sun Icon
+// ─────────────────────────────────────────
 export function SunIcon({ size = 100 }) {
   const c = size / 2;
   const r = size * 0.26;
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      style={{
-        overflow: "visible",
-        filter: `drop-shadow(0 0 ${size * 0.14}px rgba(255,140,0,0.7))`
-      }}
-    >
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
       <defs>
-        <radialGradient id="sc">
+        <radialGradient id="sunCore">
           <stop offset="0%" stopColor="#FFF8DC" />
-          <stop offset="30%" stopColor="#FFD700" />
-          <stop offset="70%" stopColor="#FF8C00" />
+          <stop offset="40%" stopColor="#FFD700" />
+          <stop offset="100%" stopColor="#FF8C00" />
         </radialGradient>
       </defs>
 
@@ -47,11 +41,14 @@ export function SunIcon({ size = 100 }) {
         })}
       </g>
 
-      <circle cx={c} cy={c} r={r} fill="url(#sc)" />
+      <circle cx={c} cy={c} r={r} fill="url(#sunCore)" />
     </svg>
   );
 }
 
+// ─────────────────────────────────────────
+// 🔝 Top Bar
+// ─────────────────────────────────────────
 export function TopBar({ title, subtitle, onBack, rightElement }) {
   return (
     <div style={{
@@ -65,9 +62,9 @@ export function TopBar({ title, subtitle, onBack, rightElement }) {
       borderBottom: "1px solid rgba(255,140,0,0.2)"
     }}>
       <div style={{ display: "flex", gap: 10 }}>
-        {onBack ? (
+        {onBack && (
           <button onClick={onBack} className="btn-outline">←</button>
-        ) : null}
+        )}
 
         <div>
           <div className="shimmer-text">{title}</div>
@@ -80,6 +77,92 @@ export function TopBar({ title, subtitle, onBack, rightElement }) {
   );
 }
 
+// ─────────────────────────────────────────
+// 📊 Stat Box (🔥 FIX ADDED)
+// ─────────────────────────────────────────
+export function StatBox({ icon, label, value, color = SUN2 }) {
+  return (
+    <div style={{
+      flex: 1,
+      textAlign: "center",
+      padding: "12px",
+      background: "rgba(22,35,71,0.6)",
+      border: "1px solid rgba(255,140,0,0.2)",
+      borderRadius: 12
+    }}>
+      <div style={{ fontSize: 18 }}>{icon}</div>
+      <div style={{ fontWeight: "bold", color }}>{value}</div>
+      <div style={{ fontSize: 10, color: MUTED }}>{label}</div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// ✨ Particle Background (🔥 FIX ADDED)
+// ─────────────────────────────────────────
+export function ParticleBg() {
+  const particles = Array.from({ length: 12 });
+
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      {particles.map((_, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            width: 3,
+            height: 3,
+            borderRadius: "50%",
+            background: "rgba(255,200,80,0.7)",
+            top: `${Math.random() * 100}%`,
+            left: `${Math.random() * 100}%`,
+            animation: `twinkle ${2 + Math.random() * 3}s infinite`
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// 📦 Card
+// ─────────────────────────────────────────
+export function Card({ children, onClick }) {
+  return (
+    <div
+      className="glass-card"
+      onClick={onClick}
+      style={{ padding: 15, marginBottom: 10 }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// ⏳ Loader
+// ─────────────────────────────────────────
+export function FullLoader({ text = "Loading..." }) {
+  return (
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#0F1B3D"
+    }}>
+      <SunIcon size={60} />
+      <div className="spinner" />
+      <p style={{ color: TEXT }}>{text}</p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// 🔻 Bottom Navigation
+// ─────────────────────────────────────────
 export function BottomNav({ activeTab, setTab, isAdmin }) {
   const items = [
     { id: "home", label: "Home", icon: "🏠" },
@@ -110,6 +193,7 @@ export function BottomNav({ activeTab, setTab, isAdmin }) {
               flex: 1,
               background: "none",
               border: "none",
+              padding: 10,
               color: active ? SUN2 : MUTED
             }}
           >
@@ -119,35 +203,5 @@ export function BottomNav({ activeTab, setTab, isAdmin }) {
         );
       })}
     </nav>
-  );
-}
-
-export function Card({ children, onClick }) {
-  return (
-    <div
-      className="glass-card"
-      onClick={onClick}
-      style={{ padding: 15, marginBottom: 10 }}
-    >
-      {children}
-    </div>
-  );
-}
-
-export function FullLoader({ text = "Loading..." }) {
-  return (
-    <div style={{
-      position: "fixed",
-      inset: 0,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "#0F1B3D"
-    }}>
-      <SunIcon size={60} />
-      <div className="spinner" />
-      <p>{text}</p>
-    </div>
   );
 }
