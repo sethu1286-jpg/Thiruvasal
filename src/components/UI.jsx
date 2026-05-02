@@ -155,3 +155,4 @@ export function BottomNav({ activeTab, setTab, isAdmin }) {
     </nav>
   );
 }
+export default {};
