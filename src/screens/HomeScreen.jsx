@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { subscribeToDonors } from "../services/firebase";
-import { SunIcon, StatBox, Card, ParticleBg } from "../components/UI.jsx";
+import { SunIcon, StatBox, Card, ParticleBg } from "./components/UI.jsx";
 import { colors } from "../styles/theme";
 
 export default function HomeScreen({ setTab }) {
