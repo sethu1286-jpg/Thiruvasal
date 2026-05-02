@@ -1,3 +1,4 @@
+console.log("UI LOADED")
 /* eslint-disable */
 import React from "react";
 
@@ -154,4 +155,4 @@ export function BottomNav({ activeTab, setTab, isAdmin }) {
     </nav>
   );
 }
-export default {};
+
