@@ -58,9 +58,9 @@ export function StatBox({ icon, label, value, color = "#FFA833" }) {
 }
 
 // 🧾 Card
-export function Card({ children, onClick }) {
+export function Card({ children, onClick, style }) {
   return (
-    <div className="glass-card" onClick={onClick} style={{ padding: 15, marginBottom: 10 }}>
+    <div className="glass-card" onClick={onClick} style={{ padding: 15, marginBottom: 10, ...style }}>
       {children}
     </div>
   );
