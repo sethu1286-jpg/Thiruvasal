@@ -71,6 +71,39 @@ export const EmptyState = ({ message }) => (
     <p>{message || "No items found."}</p>
   </div>
  );
+
+// 🗨️ Confirm Dialog
+export function ConfirmDialog({ message, onConfirm, onCancel }) {
+  return (
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 999
+    }}>
+      <div className="glass-card" style={{ padding: 24, maxWidth: 300, textAlign: "center" }}>
+        <p style={{ marginBottom: 20 }}>{message}</p>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+          <button onClick={onCancel} style={{
+            padding: "8px 20px", borderRadius: 8,
+            background: "rgba(255,255,255,0.1)", border: "none", color: "#fff"
+          }}>
+            ரத்து
+          </button>
+          <button onClick={onConfirm} style={{
+            padding: "8px 20px", borderRadius: 8,
+            background: "#FF8C00", border: "none", color: "#fff", fontWeight: "bold"
+          }}>
+            உறுதி
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 // 🔄 Loader
 export function FullLoader({ text = "Loading..." }) {
   return (
