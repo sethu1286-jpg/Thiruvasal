@@ -3,7 +3,6 @@ import { useAuth } from "../context/AuthContext";
 import { subscribeToDonors } from "../services/firebase";
 import { SunIcon, StatBox, Card, ParticleBg } from "../components/UI.jsx";
 import { colors } from "../styles/theme";
-import { StatBox } from "../components/UI.jsx";
 
 export default function HomeScreen({ setTab }) {
   const { profile = {} } = useAuth(); // ✅ safe default
