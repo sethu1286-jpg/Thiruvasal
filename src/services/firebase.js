@@ -1,8 +1,5 @@
 // ═══════════════════════════════════════════════════════
-// src/services/firebase.js
-// Firebase v10 — Firestore + Auth configuration
-// Replace the firebaseConfig values with your own from
-// Firebase Console → Project Settings → Your Apps
+// Firebase v10 — Clean + Production Ready Service Layer
 // ═══════════════════════════════════════════════════════
 
 import { initializeApp } from "firebase/app";
@@ -23,6 +20,7 @@ import {
   serverTimestamp,
   Timestamp,
 } from "firebase/firestore";
+
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -32,305 +30,225 @@ import {
   updateProfile,
 } from "firebase/auth";
 
-// ─── YOUR FIREBASE CONFIG ─────────────────────────────
-// TODO: Replace these values with your actual Firebase project config
-// Go to: Firebase Console → Project Settings → General → Your Apps → SDK setup
+// ──────────────────────────────────────────────────────
+// ENV CONFIG (SECURE)
+// ──────────────────────────────────────────────────────
 const firebaseConfig = {
-  apiKey:            process.env.REACT_APP_FIREBASE_API_KEY             || "AIzaSyABFYdnOQAf1-WkVxanFsXxM2fj6-XOnrU",
-  authDomain:        process.env.REACT_APP_FIREBASE_AUTH_DOMAIN         || "thiruvasal.firebaseapp.com",
-  projectId:         process.env.REACT_APP_FIREBASE_PROJECT_ID          || "thiruvasal",
-  storageBucket:     process.env.REACT_APP_FIREBASE_STORAGE_BUCKET      || "thiruvasal.firebasestorage.app",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "1013411348504",
-  appId:             process.env.REACT_APP_FIREBASE_APP_ID              || "1:1013411348504:web:a34bea6fc6b",
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
-// ─── INITIALIZE ───────────────────────────────────────
+if (!firebaseConfig.apiKey) {
+  throw new Error("❌ Firebase env variables missing");
+}
+
+// ──────────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────────
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
 // ═══════════════════════════════════════════════════════
-// AUTH SERVICES
+// AUTH
 // ═══════════════════════════════════════════════════════
 
-/** Register a new user with email + password */
 export async function registerUser({ name, phone, email, password, role = "donor" }) {
   try {
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(credential.user, { displayName: name });
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-    // Save user profile to Firestore
-    await setDoc(doc(db, "users", credential.user.uid), {
-      uid: credential.user.uid,
+    await updateProfile(cred.user, { displayName: name });
+
+    await setDoc(doc(db, "users", cred.user.uid), {
+      uid: cred.user.uid,
       name,
       phone,
       email,
-      role, // "donor" | "admin"
+      role,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
 
-    return { user: credential.user, error: null };
-  } catch (error) {
-    return { user: null, error: firebaseErrorMessage(error.code) };
+    return { user: cred.user, error: null };
+  } catch (e) {
+    return { user: null, error: mapError(e.code) };
   }
 }
 
-/** Sign in existing user */
 export async function loginUser({ email, password }) {
   try {
-    const credential = await signInWithEmailAndPassword(auth, email, password);
-    return { user: credential.user, error: null };
-  } catch (error) {
-    return { user: null, error: firebaseErrorMessage(error.code) };
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    return { user: cred.user, error: null };
+  } catch (e) {
+    return { user: null, error: mapError(e.code) };
   }
 }
 
-/** Sign out */
 export async function logoutUser() {
   try {
     await signOut(auth);
     return { error: null };
-  } catch (error) {
-    return { error: error.message };
+  } catch (e) {
+    return { error: e.message };
   }
 }
 
-/** Get user profile from Firestore */
-export async function getUserProfile(uid) {
-  try {
-    const snap = await getDoc(doc(db, "users", uid));
-    if (snap.exists()) return { profile: snap.data(), error: null };
-    return { profile: null, error: "User not found" };
-  } catch (error) {
-    return { profile: null, error: error.message };
-  }
-}
-
-/** Subscribe to auth state changes */
 export function subscribeToAuth(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
+export async function getUserProfile(uid) {
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    return snap.exists()
+      ? { profile: snap.data(), error: null }
+      : { profile: null, error: "User not found" };
+  } catch (e) {
+    return { profile: null, error: e.message };
+  }
+}
+
 // ═══════════════════════════════════════════════════════
-// DONOR SERVICES
+// DONORS
 // ═══════════════════════════════════════════════════════
 
-/** Add a new donor (admin only) */
-export async function addDonor({ name, phone, amount, purpose, donationDate, addedBy }) {
+export async function addDonor(data) {
   try {
-    const donorRef = await addDoc(collection(db, "donors"), {
-      name,
-      phone,
-      amount: Number(amount),
-      purpose,
-      donationDate, // ISO string "YYYY-MM-DD"
-      nextReminderDate: donationDate, // same date next year
-      status: "pending", // "pending" | "paid"
-      addedBy, // uid of admin
+    const ref = await addDoc(collection(db, "donors"), {
+      ...data,
+      amount: Number(data.amount) || 0,
+      status: "pending",
       confirmedAt: null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
-    return { id: donorRef.id, error: null };
-  } catch (error) {
-    return { id: null, error: error.message };
+
+    return { id: ref.id, error: null };
+  } catch (e) {
+    return { id: null, error: e.message };
   }
 }
 
-/** Get all donors */
-export async function getAllDonors() {
-  try {
-    const snap = await getDocs(
-      query(collection(db, "donors"), orderBy("createdAt", "desc"))
-    );
-    const donors = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    return { donors, error: null };
-  } catch (error) {
-    return { donors: [], error: error.message };
-  }
-}
-
-/** Real-time donor list subscription */
 export function subscribeToDonors(callback) {
   const q = query(collection(db, "donors"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    const donors = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    callback(donors);
-  });
+
+  return onSnapshot(
+    q,
+    (snap) => {
+      callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    },
+    (err) => {
+      console.error("Donor subscription error:", err);
+      callback([]);
+    }
+  );
 }
 
-/** Update donor confirmation status */
-export async function updateDonorStatus(donorId, status) {
+export async function updateDonorStatus(id, status) {
   try {
-    await updateDoc(doc(db, "donors", donorId), {
-      status, // "paid" | "pending"
+    await updateDoc(doc(db, "donors", id), {
+      status,
       confirmedAt: status === "paid" ? serverTimestamp() : null,
       updatedAt: serverTimestamp(),
     });
     return { error: null };
-  } catch (error) {
-    return { error: error.message };
+  } catch (e) {
+    return { error: e.message };
   }
 }
 
-/** Update donor details */
-export async function updateDonor(donorId, data) {
+export async function deleteDonor(id) {
   try {
-    await updateDoc(doc(db, "donors", donorId), {
-      ...data,
-      updatedAt: serverTimestamp(),
-    });
+    await deleteDoc(doc(db, "donors", id));
     return { error: null };
-  } catch (error) {
-    return { error: error.message };
-  }
-}
-
-/** Delete a donor */
-export async function deleteDonor(donorId) {
-  try {
-    await deleteDoc(doc(db, "donors", donorId));
-    return { error: null };
-  } catch (error) {
-    return { error: error.message };
+  } catch (e) {
+    return { error: e.message };
   }
 }
 
 // ═══════════════════════════════════════════════════════
-// BUSINESS SERVICES
+// BUSINESS
 // ═══════════════════════════════════════════════════════
 
-/** Add a new business listing */
-export async function addBusiness({ name, service, price, phone, category, plan, ownerId }) {
+export async function addBusiness(data) {
   try {
     const ref = await addDoc(collection(db, "businesses"), {
-      name,
-      service,
-      price,
-      phone,
-      category,
-      plan: plan || "free", // "free" | "paid"
-      ownerId,
+      ...data,
       isActive: true,
+      plan: data.plan || "free",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
     return { id: ref.id, error: null };
-  } catch (error) {
-    return { id: null, error: error.message };
+  } catch (e) {
+    return { id: null, error: e.message };
   }
 }
 
-/** Get all active business listings */
-export async function getAllBusinesses() {
-  try {
-    const snap = await getDocs(
-      query(
-        collection(db, "businesses"),
-        where("isActive", "==", true),
-        orderBy("plan", "desc"), // paid listings first
-        orderBy("createdAt", "desc")
-      )
-    );
-    const businesses = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    return { businesses, error: null };
-  } catch (error) {
-    return { businesses: [], error: error.message };
-  }
-}
-
-/** Real-time business subscription */
 export function subscribeToBusinesses(callback) {
   const q = query(
     collection(db, "businesses"),
     where("isActive", "==", true),
-    orderBy("plan", "desc"),
     orderBy("createdAt", "desc")
   );
-  return onSnapshot(q, (snap) => {
-    const businesses = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    callback(businesses);
-  });
+
+  return onSnapshot(
+    q,
+    (snap) => {
+      callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    },
+    (err) => {
+      console.error("Business subscription error:", err);
+      callback([]);
+    }
+  );
 }
 
-/** Toggle business active state */
-export async function toggleBusiness(businessId, isActive) {
+export async function toggleBusiness(id, isActive) {
   try {
-    await updateDoc(doc(db, "businesses", businessId), {
+    await updateDoc(doc(db, "businesses", id), {
       isActive,
       updatedAt: serverTimestamp(),
     });
     return { error: null };
-  } catch (error) {
-    return { error: error.message };
+  } catch (e) {
+    return { error: e.message };
   }
 }
 
 // ═══════════════════════════════════════════════════════
-// REMINDER SERVICES
+// STATS
 // ═══════════════════════════════════════════════════════
 
-/** Log a sent reminder */
-export async function logReminder({ donorId, type, sentAt }) {
-  try {
-    await addDoc(collection(db, "reminders"), {
-      donorId,
-      type, // "1_month" | "1_week" | "same_day"
-      sentAt: sentAt || serverTimestamp(),
-      createdAt: serverTimestamp(),
-    });
-    return { error: null };
-  } catch (error) {
-    return { error: error.message };
-  }
-}
-
-/** Get reminders for a donor */
-export async function getDonorReminders(donorId) {
-  try {
-    const snap = await getDocs(
-      query(
-        collection(db, "reminders"),
-        where("donorId", "==", donorId),
-        orderBy("sentAt", "desc")
-      )
-    );
-    return { reminders: snap.docs.map((d) => ({ id: d.id, ...d.data() })), error: null };
-  } catch (error) {
-    return { reminders: [], error: error.message };
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-// ADMIN STATS
-// ═══════════════════════════════════════════════════════
-
-/** Get dashboard statistics */
 export async function getDashboardStats() {
   try {
-    const [donorsSnap, businessesSnap] = await Promise.all([
+    const [donorSnap, bizSnap] = await Promise.all([
       getDocs(collection(db, "donors")),
       getDocs(query(collection(db, "businesses"), where("isActive", "==", true))),
     ]);
 
-    const donors = donorsSnap.docs.map((d) => d.data());
+    const donors = donorSnap.docs.map((d) => d.data());
+
     const paid = donors.filter((d) => d.status === "paid");
     const pending = donors.filter((d) => d.status === "pending");
-    const totalCollection = paid.reduce((s, d) => s + (d.amount || 0), 0);
 
     return {
       stats: {
         totalDonors: donors.length,
         paidCount: paid.length,
         pendingCount: pending.length,
-        totalCollection,
-        businessCount: businessesSnap.size,
+        totalCollection: paid.reduce((s, d) => s + (d.amount || 0), 0),
+        businessCount: bizSnap.size,
       },
       error: null,
     };
-  } catch (error) {
-    return { stats: null, error: error.message };
+  } catch (e) {
+    return { stats: null, error: e.message };
   }
 }
 
@@ -338,42 +256,43 @@ export async function getDashboardStats() {
 // HELPERS
 // ═══════════════════════════════════════════════════════
 
-/** Convert Firebase error codes to Tamil-friendly messages */
-function firebaseErrorMessage(code) {
-  const messages = {
-    "auth/email-already-in-use": "இந்த மின்னஞ்சல் ஏற்கனவே பயன்பாட்டில் உள்ளது",
-    "auth/weak-password": "கடவுச்சொல் குறைந்தது 6 எழுத்துகள் இருக்க வேண்டும்",
-    "auth/user-not-found": "பயனர் காணப்படவில்லை",
+function mapError(code) {
+  const m = {
+    "auth/email-already-in-use": "இந்த மின்னஞ்சல் ஏற்கனவே உள்ளது",
+    "auth/user-not-found": "பயனர் இல்லை",
     "auth/wrong-password": "தவறான கடவுச்சொல்",
-    "auth/invalid-email": "தவறான மின்னஞ்சல் முகவரி",
-    "auth/too-many-requests": "பல முயற்சிகள் — சிறிது நேரம் காத்திருக்கவும்",
-    "auth/network-request-failed": "நெட்வொர்க் பிழை — இணைப்பை சரிபாருங்கள்",
+    "auth/invalid-email": "தவறான மின்னஞ்சல்",
+    "auth/weak-password": "குறைந்தபட்சம் 6 எழுத்துகள் வேண்டும்",
+    "auth/network-request-failed": "நெட்வொர்க் பிழை",
   };
-  return messages[code] || "பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.";
+  return m[code] || "பிழை ஏற்பட்டது";
 }
 
-/** Format Firestore Timestamp to readable date string */
-export function formatDate(timestamp) {
-  if (!timestamp) return "—";
-  if (typeof timestamp === "string") return timestamp;
-  const date = timestamp?.toDate ? timestamp.toDate() : new Date(timestamp);
-  return date.toLocaleDateString("ta-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
+export function formatDate(ts) {
+  if (!ts) return "—";
+  const d = ts?.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString("ta-IN");
 }
 
-/** Check if a donation reminder should fire today */
-export function shouldSendReminder(donationDateStr) {
-  if (!donationDateStr) return null;
-  const donation = new Date(donationDateStr);
+export function shouldSendReminder(dateStr) {
+  if (!dateStr) return null;
+
   const today = new Date();
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const diffDays = Math.ceil((donation - today) / msPerDay);
+  const d = new Date(dateStr);
 
-  if (diffDays === 30) return "1_month";
-  if (diffDays === 7) return "1_week";
-  if (diffDays === 0) return "same_day";
+  today.setHours(0,0,0,0);
+  d.setHours(0,0,0,0);
+
+  const diff = Math.round((d - today) / (1000 * 60 * 60 * 24));
+
+  if (diff === 30) return "1_month";
+  if (diff === 7) return "1_week";
+  if (diff === 0) return "same_day";
+
   return null;
 }
 
+// EXPORT (optional reuse)
 export {
   collection, doc, addDoc, setDoc, getDoc, getDocs,
   updateDoc, deleteDoc, query, where, orderBy,
