@@ -1,3 +1,4 @@
+throw new Error("UI LOADED");
 /* eslint-disable */
 import React from "react";
 
