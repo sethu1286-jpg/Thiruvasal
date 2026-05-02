@@ -56,7 +56,40 @@ export function StatBox({ icon, label, value, color = "#FFA833" }) {
     </div>
   );
 }
+// 📋 Modal Sheet
+export function ModalSheet({ title, onClose, children }) {
+  return (
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.6)",
+      display: "flex",
+      alignItems: "flex-end",
+      justifyContent: "center",
+      zIndex: 999
+    }}>
+      <div className="glass-card" style={{
+        width: "100%",
+        maxWidth: 430,
+        borderRadius: "20px 20px 0 0",
+        padding: 24,
+        maxHeight: "80vh",
+        overflowY: "auto"
+      }}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+          <div className="shimmer-text" style={{ fontWeight: 900 }}>{title}</div>
+          <button onClick={onClose} style={{
+            background: "none", border: "none",
+            color: "#FFA833", fontSize: 20, cursor: "pointer"
+          }}>✕</button>
+        </div>
 
+        {children}
+      </div>
+    </div>
+  );
+}
 // 🧾 Card
 export function Card({ children, onClick, style }) {
   return (
