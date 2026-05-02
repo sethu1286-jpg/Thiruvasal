@@ -1,56 +1,92 @@
 /* eslint-disable */
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { subscribeToAuth, getUserProfile, logoutUser } from "../services/firebase";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useMemo
+} from "react";
+
+import {
+  subscribeToAuth,
+  getUserProfile,
+  logoutUser
+} from "../services/firebase";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null);
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let unsubscribe;
-    try {
-      unsubscribe = subscribeToAuth(async (firebaseUser) => {
-        try {
-          if (firebaseUser) {
-            setUser(firebaseUser);
+    let isMounted = true;
+
+    const unsubscribe = subscribeToAuth(async (firebaseUser) => {
+      if (!isMounted) return;
+
+      try {
+        if (firebaseUser) {
+          setUser(firebaseUser);
+
+          // ✅ Fetch profile safely
+          try {
             const { profile: p } = await getUserProfile(firebaseUser.uid);
-            setProfile(p);
-          } else {
-            setUser(null);
-            setProfile(null);
+            if (isMounted) setProfile(p || {});
+          } catch (err) {
+            console.error("Profile fetch error:", err);
+            if (isMounted) setProfile({});
           }
-        } catch (err) {
-          console.error("Auth error:", err);
+
+        } else {
           setUser(null);
           setProfile(null);
-        } finally {
-          setLoading(false);
         }
-      });
-    } catch (err) {
-      console.error("Firebase error:", err);
-      setLoading(false);
-    }
-    return () => { if (unsubscribe) unsubscribe(); };
+
+      } catch (err) {
+        console.error("Auth error:", err);
+        if (isMounted) {
+          setUser(null);
+          setProfile(null);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe && unsubscribe();
+    };
   }, []);
 
   const logout = async () => {
-    await logoutUser();
-    setUser(null);
-    setProfile(null);
+    try {
+      await logoutUser();
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setUser(null);
+      setProfile(null);
+    }
   };
 
+  // ✅ Memoized context value (performance boost)
+  const value = useMemo(() => ({
+    user,
+    profile,
+    loading,
+
+    isAdmin: profile?.role === "admin",
+    isDonor: profile?.role === "donor",
+
+    logout,
+    setProfile,
+  }), [user, profile, loading]);
+
   return (
-    <AuthContext.Provider value={{
-      user, profile, loading,
-      isAdmin: profile?.role === "admin",
-      isDonor: profile?.role === "donor",
-      logout,
-      setProfile,
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
@@ -58,6 +94,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be inside AuthProvider");
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }
