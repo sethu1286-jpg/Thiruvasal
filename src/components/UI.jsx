@@ -59,6 +59,20 @@ export function Card({ children, onClick, style }) {
   );
 }
 
+// 🏷️ Field (label + input wrapper)
+export function Field({ label, children }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      {label && (
+        <div style={{ fontSize: 11, color: MUTED, marginBottom: 5, fontWeight: 600 }}>
+          {label}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
 // 🈳 Empty State
 export function EmptyState({ message }) {
   return (
