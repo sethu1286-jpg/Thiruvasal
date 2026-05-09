@@ -59,7 +59,7 @@ export function Card({ children, onClick, style }) {
   );
 }
 
-// 🏷️ Field (label + input wrapper)
+// 🏷️ Field
 export function Field({ label, children }) {
   return (
     <div style={{ marginBottom: 14 }}>
@@ -73,17 +73,21 @@ export function Field({ label, children }) {
   );
 }
 
-// 🈳 Empty State
-export function EmptyState({ message }) {
+// 🈳 Empty State — supports both `message` and `text`/`icon`
+export function EmptyState({ message, text, icon }) {
   return (
-    <div className="empty-state">
-      <p>{message || "No items found."}</p>
+    <div style={{ textAlign: "center", padding: "40px 20px", color: MUTED }}>
+      {icon && <div style={{ fontSize: 36, marginBottom: 10 }}>{icon}</div>}
+      <p>{text || message || "No items found."}</p>
     </div>
   );
 }
 
-// 🗨️ Confirm Dialog
-export function ConfirmDialog({ message, onConfirm, onCancel }) {
+// 🗨️ Confirm Dialog — supports open/onYes/onNo AND onConfirm/onCancel
+export function ConfirmDialog({ open, message, onYes, onNo, onConfirm, onCancel }) {
+  if (open === false) return null;
+  const handleYes = onYes || onConfirm;
+  const handleNo  = onNo  || onCancel;
   return (
     <div style={{
       position: "fixed", inset: 0,
@@ -94,11 +98,11 @@ export function ConfirmDialog({ message, onConfirm, onCancel }) {
       <div className="glass-card" style={{ padding: 24, maxWidth: 300, textAlign: "center" }}>
         <p style={{ marginBottom: 20 }}>{message}</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-          <button onClick={onCancel} style={{
+          <button onClick={handleNo} style={{
             padding: "8px 20px", borderRadius: 8,
             background: "rgba(255,255,255,0.1)", border: "none", color: "#fff"
           }}>ரத்து</button>
-          <button onClick={onConfirm} style={{
+          <button onClick={handleYes} style={{
             padding: "8px 20px", borderRadius: 8,
             background: "#FF8C00", border: "none", color: "#fff", fontWeight: "bold"
           }}>உறுதி</button>
@@ -108,8 +112,9 @@ export function ConfirmDialog({ message, onConfirm, onCancel }) {
   );
 }
 
-// 📋 Modal Sheet
-export function ModalSheet({ title, onClose, children }) {
+// 📋 Modal Sheet — supports `open` prop
+export function ModalSheet({ open, title, onClose, children }) {
+  if (open === false) return null;
   return (
     <div style={{
       position: "fixed", inset: 0,
@@ -175,10 +180,10 @@ export function ParticleBg() {
 // 📱 Bottom Navigation
 export function BottomNav({ activeTab, setTab, isAdmin }) {
   const items = [
-    { id: "home", label: "Home", icon: "🏠" },
-    { id: "charity", label: "Charity", icon: "🏛️" },
+    { id: "home",     label: "Home",     icon: "🏠" },
+    { id: "charity",  label: "Charity",  icon: "🏛️" },
     { id: "business", label: "Business", icon: "🛒" },
-    { id: "profile", label: "Profile", icon: "👤" },
+    { id: "profile",  label: "Profile",  icon: "👤" },
     ...(isAdmin ? [{ id: "admin", label: "Admin", icon: "⚙️" }] : [])
   ];
   return (
